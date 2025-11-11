@@ -1,0 +1,23 @@
+.history
+.vscode
+static
+*.pyc
+# **/migrations/
+**/__pycache__/
+media/
+mediafiles/
+**/log/
+**/venv/
+**/staticfiles/
+*.ini
+.env
+.env.prod
+*.sqlite3
+pdfs/
+logs/
+/shreeeee-test
+
+# db1.sqlite3
+# .db1.sqlite3
+
+.idea
