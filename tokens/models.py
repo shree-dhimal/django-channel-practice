@@ -12,8 +12,8 @@ class Department(models.Model):
     is_active = models.BooleanField(default=True, null=False)
     parent = models.ForeignKey("self", on_delete=models.SET_NULL, null=True, blank=True)
     is_public = models.BooleanField(default=False, null=False)
-
-    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
     is_counter_queue_node = models.BooleanField(default=False, null=False)
     batch_support = models.BooleanField(default=False, null=False)
     batch_size = models.PositiveIntegerField(default=1)

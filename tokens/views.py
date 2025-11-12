@@ -80,7 +80,7 @@ class CreateTokensAPI(APIView):
             return Response(res, status=status_code)
         except Exception as e:
             message = "There was an Error"
-            status_code = status.HTTP_400_BAD_REQUEST
+            status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
             res = {"data": str(e), "message": message, "status": status_code}
             return Response(res, status=status_code)
 
@@ -91,22 +91,34 @@ class GetCurrentServingToken(APIView):
         counter_id = request.query_params.get("counter_id", None)
 
         if not department_id:
-            return Response(message="Department ID is required", status=status.HTTP_400_BAD_REQUEST)
+            status_code=status.HTTP_400_BAD_REQUEST
+            message="Department ID is required"
+            res = {"data": [], "message": message, "status": status_code}
+            return Response(res, status=status_code)
 
         try:
-            department = Department.objects.filter(id=department_id).defer('created_at','updated_at','created_by_id','updated_by_id').order_by("-id").first()
+            department = Department.objects.filter(id=department_id).defer('created_at','updated_at').order_by("-id").first()
             if not department:
-                return Response(message="No Department Found for the ID provided", status=status.HTTP_404_NOT_FOUND)
+                status_code=status.HTTP_404_NOT_FOUND
+                message="No Department Found for the ID provided"
+                res = {"data": [], "message": message, "status": status_code}
+                return Response(res, status=status_code)
 
             counter = None
             counter_wise_token = department.is_counter_queue_node
 
             if counter_wise_token:
                 if not counter_id:
-                    return Response(message="Counter ID is required for this department", status=status.HTTP_400_BAD_REQUEST)
+                    status_code=status.HTTP_404_NOT_FOUND
+                    message="Counter ID is required for this department"
+                    res = {"data": [], "message": message, "status": status_code}
+                    return Response(res, status=status_code)
                 counter = Counter.objects.filter(id=counter_id).select_related("department").first()
                 if not counter:
-                    return Response(message="No Counter Found for the ID provided", status=status.HTTP_404_NOT_FOUND)
+                    status_code=status.HTTP_404_NOT_FOUND
+                    message="No Counter Found for the ID provided"
+                    res = {"data": [], "message": message, "status": status_code}
+                    return Response(res, status=status_code)
 
             today = date.today()
             if counter_wise_token:
@@ -115,7 +127,10 @@ class GetCurrentServingToken(APIView):
                 current_token = Tokens.objects.filter(department=department, status=Tokens.TokenStatus.IN_PROGRESS, token_created_for=today).order_by("token_no").first()
 
             if not current_token:
-                return Response(message="No Current Serving Token Found", status=status.HTTP_404_NOT_FOUND)
+                status_code=status.HTTP_404_NOT_FOUND
+                message="No Current Serving Token Found"
+                res = {"data": [], "message": message, "status": status_code}
+                return Response(res, status=status_code)
 
             token_data = {
                 "token_id": current_token.id,
@@ -123,30 +138,51 @@ class GetCurrentServingToken(APIView):
                 "status": current_token.status,
                 "description": current_token.description,
             }
-
-            return Response(data=token_data, message="Current Serving Token Retrieved Successfully", status=status.HTTP_200_OK)
+            status_code=status.HTTP_200_OK
+            message="Current Serving Token Retrieved Successfully"
+            res = {"data": token_data, "message": message, "status": status_code}
+            return Response(res, status=status_code)
         except Exception as e:
-            return Response(message=str(e), status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
+            message=str(e)
+            res = {"data": [], "message": message, "status": status_code}
+            return Response(res, status=status_code)
         
 
 class NextTokenAPI(APIView):
     def post(self, request, *args, **kwargs):
         try:
+            
             depatment_id = request.data.get("department_id", None)
             counter_id = request.data.get("counter_id", None)
+
             if not depatment_id:
-                return Response(message="Department ID is required", status=status.HTTP_400_BAD_REQUEST)
-            department = Department.objects.filter(id=depatment_id).defer('created_at','updated_at','created_by_id','updated_by_id').first()
+                status_code=status.HTTP_400_BAD_REQUEST
+                message="Department ID is required"
+                res = {"data": [], "message": message, "status": status_code}
+                return Response(res, status=status_code)
+
+            department = Department.objects.filter(id=depatment_id).defer('created_at','updated_at').first()
             if not department:
-                return Response(message="No Department Found for the ID provided", status=status.HTTP_404_NOT_FOUND)
+                status_code=status.HTTP_400_BAD_REQUEST
+                message="No Department Found for the ID provided"
+                res = {"data": [], "message": message, "status": status_code}
+                return Response(res, status=status_code)
+                
             counter = None
             counter_wise_token = department.is_counter_queue_node
             if counter_wise_token:
                 if not counter_id:
-                    return Response(message="Counter ID is required for this department", status=status.HTTP_400_BAD_REQUEST)
+                    status_code=status.HTTP_400_BAD_REQUEST
+                    message="Counter ID is required for this department"
+                    res = {"data": [], "message": message, "status": status_code}
+                    return Response(res, status=status_code)
                 counter = Counter.objects.filter(id=counter_id).select_related("department").first()
                 if not counter:
-                    return Response(message="No Counter Found for the ID provided", status=status.HTTP_404_NOT_FOUND)
+                    status_code=status.HTTP_400_BAD_REQUEST
+                    message="No Counter Found for the ID provided"
+                    res = {"data": [], "message": message, "status": status_code}
+                    return Response(res, status=status_code)
             
             today = date.today()
             with transaction.atomic():
@@ -161,7 +197,10 @@ class NextTokenAPI(APIView):
                     next_token = Tokens.objects.filter(department=department, status=Tokens.TokenStatus.OPEN, token_created_for=today).order_by("token_no").select_for_update(nowait=True).first()
                 
                 if not next_token:
-                    return Response(message="No Next Token Available", status=status.HTTP_404_NOT_FOUND)
+                    status_code=status.HTTP_400_BAD_REQUEST
+                    message="No Next Token Available"
+                    res = {"data": [], "message": message, "status": status_code}
+                    return Response(res, status=status_code)
                 
                 next_token.status = Tokens.TokenStatus.IN_PROGRESS
                 next_token.save()

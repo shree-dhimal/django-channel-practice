@@ -9,10 +9,8 @@ channel_layer = get_channel_layer()
 
 def connect_to_channel_layer(group_name: str,function_name: str, response_data: dict | None = None, action: str | None = None):
     
-    redis_obj = RedisSetup()
-    redis_connection = redis_obj.connect()
     # channel_layer = get_channel_layer()
-    if not channel_layer or not redis_obj.redis_instance:
+    if not channel_layer:
         print("No Channel layer Configured or Redis client not connected")
         return
     
@@ -28,7 +26,10 @@ def connect_to_channel_layer(group_name: str,function_name: str, response_data: 
                 "data": response_data
             }
         )
+        print("Message sent to channel layer")
     else:
+        redis_obj = RedisSetup()
+        redis_connection = redis_obj.connect()
         ''' if the application is WSGI, use Redis to publish and subscribe messages'''
 
         if not redis_connection["status"]:

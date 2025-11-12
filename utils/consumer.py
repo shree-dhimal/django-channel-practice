@@ -42,6 +42,7 @@ class TokenDisplayConsumer(BaseSocketConsumer):
         
         # data is the payload sent from server to client
         # type is the type of event(function name to be called on client side)
+        print("Sending token display update:", data)
         await self.send(text_data=json.dumps({
             'type': "message from server to client",
             'data': data
