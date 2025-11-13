@@ -28,7 +28,9 @@ def connect_to_channel_layer(group_name: str,function_name: str, response_data: 
         )
         print("Message sent to channel layer")
     else:
+        print("Application is WSGI. Connecting to Redis...")
         redis_obj = RedisSetup()
+        print(f"Connecting to Redis at {config('REDIS_HOST')}:{config('REDIS_PORT')}... {redis_obj}")
         redis_connection = redis_obj.connect()
         ''' if the application is WSGI, use Redis to publish and subscribe messages'''
 
@@ -43,6 +45,7 @@ def connect_to_channel_layer(group_name: str,function_name: str, response_data: 
         if not publish_response["status"]:
             print("Failed to publish message to Redis:", publish_response["message"])
             return
+        print("Message published to Redis channel:", group_name,publish_response["message"])
         # send_message_to_websocket_via_redis(redis_obj, group_name, function_name)
         
         

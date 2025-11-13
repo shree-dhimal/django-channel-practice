@@ -11,19 +11,25 @@ class RedisSetup:
         self.port = REDIS_PORT
         self.redis_instance = None
 
+        print(f"Initialized RedisSetup with client: {self.client}, port: {self.port}")
+
     def connect(self):
         '''Connects to the Redis server.'''
 
         res = {"status": False, "message": "Failed to connect to Redis"}
         try:
+            print( f"Connecting to Redis at --------------------------------")
+            print(f"Client: {self.client}, Port: {self.port}")
             if self.client and self.port:
+                print("Redis host ani port cha?")
                 self.redis_instance = redis.StrictRedis(
-                host=self.client,
+                host=self.client, 
                 port=self.port,
                 db=0,
                 decode_responses=True
             )
-                self.redis_instance.ping() # Test the connection
+                print("is Reddis connected?",self.redis_instance.ping()) # Test the connection
+
                 res["status"] = True
                 res["message"] = "Connected to Redis successfully"
                 print(res["message"])

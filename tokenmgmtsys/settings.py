@@ -28,7 +28,7 @@ DEBUG = config("DEBUG", default=True)
 
 MODE = config("MODE", default="development")
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["*"]
 
 
 # Application definition
@@ -80,6 +80,7 @@ else:
     WSGI_APPLICATION = 'tokenmgmtsys.wsgi.application'
 
 if MODE == "production" and APPLICATION == "ASGI":
+    print("Production mode with ASGI application. Using Redis channel layer.")
     CHANNEL_LAYERS = {
         "default": {
             "BACKEND": "channels_redis.core.RedisChannelLayer",
